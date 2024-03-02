@@ -70,7 +70,6 @@ const UserSkill = sequelize.define('UserSkill', {
    
     
 });
-
   router.put('/addskills',auth.verifyJWT, async (req, res) => {
     if (sessionUtils.isLoggedIn(req.session)) {
       const user = sessionUtils.getLoggedInUser(req.session);

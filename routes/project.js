@@ -157,7 +157,6 @@ router.post('/request', async (req, res) => {
     const userId = user.id
 
   try {
-
     const sql = 'SELECT * FROM collaboration_requests WHERE project_id = ? AND user_id = ?'
 
     connection.query(sql, [projectId, userId], async (error, results) => {
@@ -272,7 +271,6 @@ router.put('/projects/:projectId/request/:requestId', async (req, res) => {
         connection.query(sql, [JSON.stringify(materials)], (error, results) => {
             res.send(results)
         });
-
 
     } 
     if (categories && categories.length > 0) {

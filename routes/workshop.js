@@ -150,7 +150,6 @@ connection.query(sqlSelect, [workshopId], (error, results) => {
     return;
 
   }
-
   if (results.length === 0) {
     console.error('Workshop not found');
     // Handle case where workshop with given ID doesn't exist
