@@ -10,9 +10,13 @@ const workshop = require('./routes/workshop');
 const skill = require('./routes/skill');
 const login = require('./routes/login')
 const project = require('./routes/project')
+const activite = require('./routes/activite')
+const task = require('./routes/task')
 app.use('/api',x,skill,login)
 app.use('/project',x, project)
 app.use('/workshop',x, workshop)
+app.use('/activite',x, activite)
+app.use('/tast',x, task)
 
 
 app.listen(3000, () => {

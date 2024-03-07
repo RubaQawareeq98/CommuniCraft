@@ -102,8 +102,93 @@ const sequelize = new Sequelize('CommuniCraft', 'root', '123456789', {
     // Add timestamps for automatic creation and update timestamps (optional)
     timestamps: true
   });
+  
+  const Activities = sequelize.define('activities', {
+    activity_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    action_description: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    data_occure: {
+      type: DataTypes.DATEONLY,
+      allowNull: false
+    },
+    time_occure: {
+      type: DataTypes.INTEGER, // Adjust data type if needed
+      allowNull: false
+    },
+    project_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'projects',
+        key: 'id'
+      },
+      onDelete: 'CASCADE'
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      onDelete: 'CASCADE'
+    }
+  });
 
+  const Task = sequelize.define('task', {
+    task_id:{
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  title_task:{
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  description:{
+    type: DataTypes.TEXT,
+      allowNull: false
+},
+status:{
+  type: DataTypes.ENUM('To_Do', ' In_Progress', 'completed'),
+  allowNull: false
+},
+due_date:{
+  type: DataTypes.DATEONLY,
+      allowNull: false
+},
+created_at:{
+  type: DataTypes.DATE,
+  allowNull: false,
+  defaultValue: Sequelize.NOW
+},
+updated_at:{
+  type: DataTypes.DATE,
+  allowNull: false,
+  defaultValue: Sequelize.NOW
+},
+project_id: {
+  type: DataTypes.INTEGER,
+  references: {
+    model: 'projects',
+    key: 'id'
+  },
+  onDelete: 'CASCADE'
+},
+assigned_to: {
+  type: DataTypes.INTEGER,
+  references: {
+    model: 'users',
+    key: 'id'
+  },
+  onDelete: 'CASCADE'
+}
 
+ });
 
   router.put('/addProject', auth.verifyJWT, async(req,res)=>{
     if (sessionUtils.isLoggedIn(req.session)) {
