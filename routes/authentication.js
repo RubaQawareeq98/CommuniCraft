@@ -3,46 +3,6 @@ const jwt = require('jsonwebtoken'); // For token generation
 const mysql = require('mysql2')
 const express = require('express');
 const router = express.Router()
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = new Sequelize('CommuniCraft', 'root', '123456789', {
-    host: 'localhost',
-    dialect: 'mysql'
-  });
-  
-
-const User = sequelize.define('User', {
-    id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        primaryKey: true
-    },
-    firstName: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    lastName: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
-      
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    address: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-});
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -187,6 +147,31 @@ connection.query(sql, [user.id], (error, results) => {
  res.send(user);
 });
 });
+router.post('/updateProfile', async(req,res)=>{
+  const {firstName, lastName, phone ,address, password} = req.body
+  let sql = `UPDATE users SET`;
+
+  // Build the SQL query dynamically based on the provided fields
+  const fieldsToUpdate = [];
+  if (firstName) fieldsToUpdate.push(`firstName = '${firstName}'`);
+  if (lastName) fieldsToUpdate.push(`lastName = '${lastName}'`);
+  if (address) fieldsToUpdate.push(`address = ${address}`);
+  if (phone) fieldsToUpdate.push(`phone = ${phone}`);
+  if (password) {
+    const hashedPassword = await bcrypt.hash(password, salt);
+    fieldsToUpdate.push(`password = ${hashedPassword}`);
+  }
+  const user = getLoggedInUser(req.session);
+  sql += ' ' + fieldsToUpdate.join(', ') + ` WHERE id = ${user.id}`;
+
+  connection.query(sql, (error, results, fields) => {
+    if (error) {
+      console.error('Error updating user: ' + error.message);
+      return;
+    }
+    res.send('User information updated successfully');
+  });
+})
 
 
 

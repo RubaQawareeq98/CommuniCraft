@@ -10,7 +10,6 @@ const connection = mysql.createConnection({
 });
 const sessionUtils = require('./authentication')
 const session = require('express-session');
-const passport = require('passport');
 router.use(session({
   name: process.env.SESSION_NAME,
   key: process.env.SESSION_KEY,
@@ -27,7 +26,6 @@ router.get('/p', (req, res) => {
       res.status(401).json({ message: 'User not logged in' });
   }
 });
-
 
 
 connection.connect();

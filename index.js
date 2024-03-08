@@ -16,7 +16,7 @@ app.use('/api',x,skill,login)
 app.use('/project',x, project)
 app.use('/workshop',x, workshop)
 app.use('/activite',x, activite)
-app.use('/tast',x, task)
+app.use('/task',x, task)
 
 
 app.listen(3000, () => {

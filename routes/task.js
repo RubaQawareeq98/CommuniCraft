@@ -22,17 +22,17 @@ router.post('/newtask', async (req, res) => {
     const task = req.body.task; // Assuming the task data is sent in the request body
   
     const sql = `INSERT INTO tasks
-      (title_task, description,  status, due_date,created_at, updated_at,project_id,assigned_to )
-      VALUES (?, ?, ?, ?, ?, ?)`;
-  
+      (title, description,  status, due_date,created_at, updated_at,project_id,assigned_to )
+      VALUES (?, ?, ?, ?, ?, ?,?,?)`;
+
     connection.query(sql, [
-     
+    
       task.title_task,
       task.description,
       task.status,
       task.due_date,
       task.created_at,
-      task.update_at,
+      task.updated_at,
       task.project_id,
       task.assigned_to
     ], (error, results) => {
@@ -109,3 +109,5 @@ router.post('/newtask', async (req, res) => {
         });
 
   });
+
+  module.exports = router

@@ -21,15 +21,13 @@ connection.connect();
   //do action of project  or do modifay
 router.post('/newactivites', async(req,res)=>{
 
-  const Activities = req.body.router.post('/newactivites', async(req,res)=>{
-          const activites = req.body.Activities
+          const activites = req.body
           const sql = `INSERT INTO activites
             (  action_description , data_occure, time_occure,project_id, user_id ) 
             VALUES ( ?, ?, ?, ?, ?)`;
       let activitiesId = 0
 // Execute the query
       connection.query(sql, [
-        
         activites.action_description,
         activites.data_occure,
         activites.time_occure,
@@ -44,14 +42,14 @@ router.post('/newactivites', async(req,res)=>{
           const affectedRows = results.affectedRows || 0; // Handle potential undefined value
 
           if (affectedRows === 1) {
-            console.log(`Someone do action of project : ${Activities.project_id}`);
-            res.status(201).send({ message: 'Activity created successfully', project_id: Activities.project_id }); // Return success with project ID
+            console.log(`Someone do action of project : ${activites.project_id}`);
+            res.status(201).send({ message: 'Activity created successfully', project_id: activites.project_id }); // Return success with project ID
           } else {
             console.log('No activities inserted.'); // Handle unexpected scenario
             res.status(500).send('Unexpected error during activity creation'); // Return error
           }
         }
-       });
+    
       }
      );
 });
@@ -65,7 +63,7 @@ router.get('/get-activities-by-project-id', async (req, res) => {
   }
 
   // Use a prepared statement to prevent SQL injection
-  const sql = `SELECT * FROM activities WHERE project_id = ?`;
+  const sql = `SELECT * FROM activites WHERE project_id = ?`;
 
   connection.query(sql, [projectId], (error, results) => {
     if (error) {
@@ -86,7 +84,7 @@ router.delete('/delete-activity/:activityId', async (req, res) => {
   }
 
   // Use a prepared statement to prevent SQL injection
-  const sql = `DELETE FROM activities WHERE id = ?`;
+  const sql = `DELETE FROM activites WHERE activity_id = ?`;
 
   connection.query(sql, [activityId], (error, results) => {
     if (error) {
@@ -100,7 +98,7 @@ router.delete('/delete-activity/:activityId', async (req, res) => {
 });
 
 router.put('/update-activity', async (req, res) => {
-  const activityId = parseInt(req.body.user_id); // Extract activity ID from request body
+  const activityId = parseInt(req.body.activity_id); // Extract activity ID from request body
   const updatedActivity = req.body; // Updated activity data
 
   if (isNaN(activityId)) { // Validate activity ID
@@ -110,10 +108,10 @@ router.put('/update-activity', async (req, res) => {
   // Validate any other required fields in `updatedActivity` based on your schema
 
   // Use a prepared statement to prevent SQL injection
-  const sql = `UPDATE activities SET action_description = ?, data_occure = ? time_occure = ? 
-  WHERE id = ?`;
+  const sql = `UPDATE activites SET action_description = ?, data_occure = ?, time_occure = ? 
+  WHERE activity_id = ?`;
 
-  connection.query(sql, [updatedActivity, activityId], (error, results) => {
+  connection.query(sql, [updatedActivity.action_description, updatedActivity.data_occure, updatedActivity.time_occure, activityId], (error, results) => {
     if (error) {
       console.error('Error updating activity:', error);
       res.status(500).send('Error updating activity');
@@ -125,4 +123,4 @@ router.put('/update-activity', async (req, res) => {
     }
   });
 });
-    
+    module.exports = router
