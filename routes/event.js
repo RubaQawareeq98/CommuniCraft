@@ -10,9 +10,9 @@ const connection = mysql.createPool({
   database: "advance",
   connectionLimit: 10,
 });
-app.get("/event", (req, res) => {
+app.get("/home/event", (req, res) => {
   connection.query(
-    `SELECT title ,location,date_time,registrationFee FROM workshops`,
+    `SELECT title ,location,date_time,registrationFee,description,duration,date_time,status FROM workshops`,
     (err, result, fields) => {
       if (err) {
         console.log("Error:", err);
@@ -23,7 +23,7 @@ app.get("/event", (req, res) => {
 
       // Iterate over the result array
       result.forEach((item, index) => {
-        responseString += `event : ${item.title}, location: ${item.location},at time : ${item.date_time},registration : ${item.registrationFee}`;
+        responseString += `event : ${item.title}, location: ${item.location},at time : ${item.date_time},registration : ${item.registrationFee},description: ${item.description},duration: ${item.duration},Day : ${item.date_time},status:${item.status}`;
         if (index !== result.length - 1) {
           responseString += "\n"; // Add a newline if it's not the last item
         }
@@ -35,3 +35,4 @@ app.get("/event", (req, res) => {
   );
 });
 module.exports = app;
+
