@@ -126,7 +126,29 @@ const UserSkill = sequelize.define('UserSkill', {
      
   })
 
- 
+  router.get('/users-by-skill/:skillName', async (req, res) => {
+    try {
+        const skillName = req.params.skillName;
+        
+        const sql = `
+            SELECT  u.firstName, u.lastName, email, phone, address
+            FROM users u
+            JOIN userSkills us ON u.id = us.userID
+            JOIN skills s ON us.skillID = s.id
+            WHERE s.name = ?
+        `;
+        connection.query(sql, [skillName], (error, results) => {
+            if (error) {
+                console.error(error);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+            res.json(results);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
   module.exports =router;
 
  

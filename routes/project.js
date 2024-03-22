@@ -198,28 +198,29 @@ assigned_to: {
     const savedProject = await newProject.save();
     res.status(201).json(savedProject);
     let collaborators = req.body["collabrators"]
+    console.log(collaborators)
     collaborators.push(user.email)
-    addCollaborator(savedProject.project_id,collaborators)
+    addCollaborator(2,collaborators)
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error creating project' });
   }
-
 }
 else{
   res.send("You must login before")
 }
-  })
-
-
+ } )
   function addCollaborator(project_id, collaborators){
+    
     collaborators.map(col=>{
-      const sql = `SELECT id FROM users WHERE email = ?`;
+      
+      const sql = `SELECT id FROM users where email =?`;
+      
       connection.query(sql, [col], async (error, results) => {
         if (error) {
           console.error(error);
         }
-        console.log(results[0])
+      
         let user_id = results[0].id
         
         try {
@@ -233,10 +234,9 @@ else{
     })
   })}
 
-
     // Endpoint for users to send a request to join a project
-router.post('/request', async (req, res) => {
-  const  projectId  = req.body.projectId;
+router.post('/request/:projectId', async (req, res) => {
+  const  projectId  = parseInt(req.params.projectId);
   if (sessionUtils.isLoggedIn(req.session)) {
     const user = sessionUtils.getLoggedInUser(req.session);
     const userId = user.id
@@ -282,29 +282,53 @@ else{
 
 // Endpoint for project collaborators to accept or reject requests
 router.put('/projects/:projectId/request/:requestId', async (req, res) => {
+  if (sessionUtils.isLoggedIn(req.session)) {
+    const user = sessionUtils.getLoggedInUser(req.session);
+  
   const { projectId, requestId} = req.params;
   const { status } = req.body;
-
-  try {
-    const sql = 'UPDATE collaboration_requests SET status = ? WHERE id = ? AND project_id = ?';
-    connection.query(sql, [status, requestId, projectId], async (error, results) => {
-      if (error) {
+  var users =[]
+  const query = `select user_id from projectcollaborators where project_id =?`
+  connection.query(query, [projectId], async (error, results) => {
+    if (error) {
+      console.error('Error getting collaborators:', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+    for(let id of results){
+      users.push(id["user_id"])
+    }
+    if(users.includes(user.id)){
+      try {
+        const sql = 'UPDATE collaboration_requests SET status = ? WHERE id = ? AND project_id = ?';
+        connection.query(sql, [status, requestId, projectId], async (error, results) => {
+          if (error) {
+            console.error('Error updating request:', error);
+            return res.status(500).json({ message: 'Internal Server Error' });
+          }
+          res.json({ message: 'Request updated successfully' });
+        });
+      } catch (error) {
         console.error('Error updating request:', error);
-        return res.status(500).json({ message: 'Internal Server Error' });
+        res.status(500).json({ message: 'Internal Server Error' });
       }
-      res.json({ message: 'Request updated successfully' });
-    });
-  } catch (error) {
-    console.error('Error updating request:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
+    }
+    else{
+      res.send("You don't have previlage to access this project")
+    }
+  });
+}
+else{
+  res.send("You must login")
+}
+ 
+  
   
 });
 
   router.get('/myProjects', (req,res)=>{
     if (sessionUtils.isLoggedIn(req.session)) {
       const user = sessionUtils.getLoggedInUser(req.session);
-      const sql = `SELECT p.*
+      const sql = `SELECT p.title
                   FROM projects p
                   INNER JOIN projectcollaborators pc ON p.project_id = pc.project_id
                   WHERE pc.user_id = ?
@@ -331,19 +355,42 @@ router.put('/projects/:projectId/request/:requestId', async (req, res) => {
 
   
     
+  router.post('/updateProject/:projectID', async (req, res) => {
+    const projectID = Number(req.params.projectID)
+    const {title, descriptio, estimated_time ,collabrators, group_size} = req.body
+  let sql = `UPDATE projects SET`;
+
+  // Build the SQL query dynamically based on the provided fields
+  const fieldsToUpdate = [];
+  if (title) fieldsToUpdate.push(`title = '${title}'`);
+  if (descriptio) fieldsToUpdate.push(`description = '${descriptio}'`);
+  if (estimated_time) fieldsToUpdate.push(`estimated_time = ${estimated_time}`);
+  if (collabrators) fieldsToUpdate.push(`collabrators = ${collabrators}`);
+  if (group_size)  fieldsToUpdate.push(`group_size = ${group_size}`);
+  
+  sql += ' ' + fieldsToUpdate.join(', ') + ` WHERE id = ${projectID}`;
+
+  connection.query(sql, (error, results, fields) => {
+    if (error) {
+      console.error('Error updating user: ' + error.message);
+      return;
+    }
+    res.send('Project information updated successfully');
+  });
+  });
   router.get('/search', async (req, res) => {
     const validation = req.body;
     if (validation.error) {
       return res.status(400).json({ message: validation.error.details[0].message });
     }
   
-    const { query, skills, materials, categories } = validation;
+    const { title, skills, materials, categories } = validation;
     let searchQuery = 'SELECT * FROM projects WHERE ';
     let searchParams = [];
   
-    if (query) {
+    if (title) {
       searchQuery += `(title LIKE ? OR description LIKE ?)`;
-      searchParams.push(`%${query}%`, `%${query}%`);
+      searchParams.push(`%${title}%`, `%${title}%`);
     }
   
     if (skills && skills.length > 0) {
@@ -362,7 +409,6 @@ router.put('/projects/:projectId/request/:requestId', async (req, res) => {
         searchQuery += `OR difficulty_level LIKE ?`;
         searchParams.push(`%${categories}%`, `%${categories}%`);
     }
-  
     
   
     try {
@@ -379,6 +425,21 @@ router.put('/projects/:projectId/request/:requestId', async (req, res) => {
     }
   });
   
+  router.delete('/project/:projectId', async (req,res)=>{
+    const projectId = Number(req.params.projectId)
+    const sql = `DELETE FROM projects WHERE project_id = ?`;
+
+  connection.query(sql, [projectId], (error, results) => {
+    if (error) {
+      console.error('Error deleting project:', error);
+      res.status(500).send('Error deleting activity');
+    } else {
+      res.status(200).send('Project deleted successfully');
+      console.log(`PRoject with ID ${projectId} deleted successfully`); // Log a more informative message
+    }
+  });
+  })
+
 
   module.exports =router;
 
